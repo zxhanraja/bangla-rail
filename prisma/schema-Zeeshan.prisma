@@ -1,0 +1,98 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Station {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  nameBn      String?
+  zone        String   @default("ER")
+  division    String   @default("Sealdah")
+  district    String?
+  lat         Float?
+  lng         Float?
+  createdAt   DateTime @default(now())
+
+  scheduleStops ScheduleStop[]
+  corrections   Correction[]
+
+  @@index([name])
+  @@index([division])
+}
+
+model Train {
+  id                    String   @id @default(cuid())
+  number                String   @unique
+  name                  String
+  type                  String   @default("EMU Local")
+  originStationCode     String
+  destinationStationCode String
+  runningDays           String   @default("Daily")
+  distanceKm            Int?
+  createdAt             DateTime @default(now())
+
+  scheduleStops ScheduleStop[]
+
+  @@index([originStationCode])
+  @@index([destinationStationCode])
+  @@index([type])
+}
+
+model ScheduleStop {
+  id             Int      @id @default(autoincrement())
+  trainId        String
+  stationId      String
+  sequenceNo     Int
+  dayOffset      Int      @default(1)
+  arrivalTime    String?  // HH:mm
+  departureTime  String?  // HH:mm
+  haltMinutes    Int      @default(1)
+  source         String   @default("seed") // 'seed' | 'community' | 'verified'
+  lastVerifiedAt DateTime @default(now())
+
+  train   Train   @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([trainId, stationId])
+  @@index([stationId])
+  @@index([trainId])
+  @@index([stationId, sequenceNo])
+  @@index([trainId, sequenceNo])
+  @@index([stationId, trainId])
+}
+
+model Correction {
+  id            Int       @id @default(autoincrement())
+  stationCode   String
+  stationName   String?
+  trainNumber   String
+  trainName     String?
+  fromStation   String?
+  toStation     String?
+  arrivalTime   String?
+  departureTime String?
+  note          String?
+  submittedAt   DateTime  @default(now())
+  status        String    @default("pending") // 'pending' | 'approved' | 'rejected'
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  ipHash        String?
+
+  station Station? @relation(fields: [stationCode], references: [code], onDelete: Cascade)
+
+  @@index([status])
+  @@index([stationCode])
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#27272A" />
+      <stop offset="100%" stop-color="#18181B" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <!-- Train Outline / Silhouette -->
+  <g transform="translate(106, 86)">
+    <!-- Main Engine Cabin -->
+    <path d="M40 30 C40 13.4 53.4 0 70 0 L230 0 C246.6 0 260 13.4 260 30 L276 170 C280 205 276 250 250 270 L250 300 C250 311 241 320 230 320 L210 320 C199 320 190 311 190 300 L190 286 L110 286 L110 300 C110 311 101 320 90 320 L70 320 C59 320 50 311 50 300 L50 270 C24 250 20 205 24 170 Z" fill="#F7F5EE" />
+    <!-- Windshield -->
+    <path d="M60 48 C60 42 64 36 72 36 L228 36 C236 36 240 42 240 48 L248 110 C248 116 242 122 236 122 L64 122 C58 122 52 116 52 110 Z" fill="#18181B" />
+    <!-- Windshield Center Divider -->
+    <line x1="150" y1="36" x2="150" y2="122" stroke="#F7F5EE" stroke-width="4" stroke-linecap="round" />
+    <!-- Center Grille & Accent -->
+    <rect x="70" y="146" width="160" height="20" rx="6" fill="#D4D4D8" />
+    <!-- Dual Headlights -->
+    <circle cx="86" cy="214" r="18" fill="#FACC15" />
+    <circle cx="86" cy="214" r="24" fill="#FEF08A" opacity="0.35" />
+    <circle cx="214" cy="214" r="18" fill="#FACC15" />
+    <circle cx="214" cy="214" r="24" fill="#FEF08A" opacity="0.35" />
+    <!-- High Speed Track Lines -->
+    <path d="M12 344 L288 344" stroke="#71717A" stroke-width="8" stroke-linecap="round" />
+    <path d="M-10 376 L310 376" stroke="url(#accentGrad)" stroke-width="12" stroke-linecap="round" />
+  </g>
+</svg>
