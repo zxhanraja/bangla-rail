@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { LRUCache } from '@/lib/lru-cache';
 
 export interface StationData {
@@ -40,9 +41,37 @@ export async function getAllCachedStations(): Promise<StationData[]> {
 
   stationLoadPromise = (async () => {
     try {
-      const stations = await prisma.station.findMany({
-        orderBy: { name: 'asc' },
-      });
+      let stations: any[] = [];
+      try {
+        stations = await prisma.station.findMany({
+          orderBy: { name: 'asc' },
+        });
+      } catch (prismaErr) {
+        console.warn('[trainDataCache] Prisma stations query failed, using Supabase fallback...');
+      }
+
+      if (!stations || stations.length === 0) {
+        const { data, error } = await supabase
+          .from('stations')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('[trainDataCache] Supabase stations error:', error.message);
+        } else if (data && data.length > 0) {
+          stations = data.map((s) => ({
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            nameBn: s.name_bn || null,
+            zone: s.zone || 'ER',
+            division: s.division || 'Sealdah',
+            district: s.district || null,
+            lat: s.lat != null ? Number(s.lat) : null,
+            lng: s.lng != null ? Number(s.lng) : null,
+          }));
+        }
+      }
 
       allStationsList = stations;
       stationByCodeMap.clear();
@@ -157,19 +186,77 @@ export async function getCachedStationWithSchedule(code: string) {
   const cached = stationScheduleCache.get(upper);
   if (cached) return cached;
 
-  const station = await prisma.station.findUnique({
-    where: { code: upper },
-    include: {
-      scheduleStops: {
-        include: {
-          train: true,
-        },
-        orderBy: {
-          departureTime: 'asc',
+  let station: any = null;
+  try {
+    station = await prisma.station.findUnique({
+      where: { code: upper },
+      include: {
+        scheduleStops: {
+          include: {
+            train: true,
+          },
+          orderBy: {
+            departureTime: 'asc',
+          },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    // Prisma failed (e.g. SQLite missing on Vercel)
+  }
+
+  if (!station) {
+    const { data: stData } = await supabase
+      .from('stations')
+      .select('*, schedule_stops(*, trains(*))')
+      .eq('code', upper)
+      .maybeSingle();
+
+    if (stData) {
+      const sortedStops = (stData.schedule_stops || [])
+        .map((s: any) => ({
+          id: s.id,
+          trainId: s.train_id,
+          stationId: s.station_id,
+          sequenceNo: s.sequence_no,
+          dayOffset: s.day_offset,
+          arrivalTime: s.arrival_time,
+          departureTime: s.departure_time,
+          haltMinutes: s.halt_minutes,
+          source: s.source,
+          train: s.trains
+            ? {
+                id: s.trains.id,
+                number: s.trains.number,
+                name: s.trains.name,
+                type: s.trains.type,
+                originStationCode: s.trains.origin_station_code,
+                destinationStationCode: s.trains.destination_station_code,
+                runningDays: s.trains.running_days,
+                distanceKm: s.trains.distance_km,
+              }
+            : null,
+        }))
+        .sort((a: any, b: any) => {
+          const tA = a.departureTime || a.arrivalTime || '00:00';
+          const tB = b.departureTime || b.arrivalTime || '00:00';
+          return tA.localeCompare(tB);
+        });
+
+      station = {
+        id: stData.id,
+        code: stData.code,
+        name: stData.name,
+        nameBn: stData.name_bn,
+        zone: stData.zone,
+        division: stData.division,
+        district: stData.district,
+        lat: stData.lat,
+        lng: stData.lng,
+        scheduleStops: sortedStops,
+      };
+    }
+  }
 
   if (station) {
     stationScheduleCache.set(upper, station);
@@ -186,19 +273,70 @@ export async function getCachedTrainByNumber(trainNumber: string) {
   const cached = trainDetailCache.get(clean);
   if (cached) return cached;
 
-  const train = await prisma.train.findUnique({
-    where: { number: clean },
-    include: {
-      scheduleStops: {
-        include: {
-          station: true,
-        },
-        orderBy: {
-          sequenceNo: 'asc',
+  let train: any = null;
+  try {
+    train = await prisma.train.findUnique({
+      where: { number: clean },
+      include: {
+        scheduleStops: {
+          include: {
+            station: true,
+          },
+          orderBy: {
+            sequenceNo: 'asc',
+          },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    // Prisma failed
+  }
+
+  if (!train) {
+    const { data: trData } = await supabase
+      .from('trains')
+      .select('*, schedule_stops(*, stations(*))')
+      .eq('number', clean)
+      .maybeSingle();
+
+    if (trData) {
+      const sortedStops = (trData.schedule_stops || [])
+        .map((s: any) => ({
+          id: s.id,
+          trainId: s.train_id,
+          stationId: s.station_id,
+          sequenceNo: s.sequence_no,
+          dayOffset: s.day_offset,
+          arrivalTime: s.arrival_time,
+          departureTime: s.departure_time,
+          haltMinutes: s.halt_minutes,
+          source: s.source,
+          station: s.stations
+            ? {
+                id: s.stations.id,
+                code: s.stations.code,
+                name: s.stations.name,
+                nameBn: s.stations.name_bn,
+                zone: s.stations.zone,
+                division: s.stations.division,
+              }
+            : null,
+        }))
+        .sort((a: any, b: any) => a.sequenceNo - b.sequenceNo);
+
+      train = {
+        id: trData.id,
+        number: trData.number,
+        name: trData.name,
+        type: trData.type,
+        originStationCode: trData.origin_station_code,
+        destinationStationCode: trData.destination_station_code,
+        runningDays: trData.running_days,
+        distanceKm: trData.distance_km,
+        scheduleStops: sortedStops,
+      };
+    }
+  }
 
   if (train) {
     trainDetailCache.set(clean, train);

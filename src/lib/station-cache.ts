@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { supabase } from './supabase';
 
 export interface CachedStation {
   id: string;
@@ -23,9 +24,39 @@ export async function getAllStations(): Promise<CachedStation[]> {
 
   cachePromise = (async () => {
     try {
-      const list = await prisma.station.findMany({
-        orderBy: { name: 'asc' },
-      });
+      let list: any[] = [];
+      try {
+        list = await prisma.station.findMany({
+          orderBy: { name: 'asc' },
+        });
+      } catch (prismaErr) {
+        console.warn('[station-cache] Prisma query failed, fetching stations from Supabase fallback...');
+      }
+
+      // If Prisma returned empty list (e.g. SQLite on Vercel Serverless), fetch from Supabase
+      if (!list || list.length === 0) {
+        const { data, error } = await supabase
+          .from('stations')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (error) {
+          console.error('[station-cache] Supabase stations error:', error.message);
+        } else if (data && data.length > 0) {
+          list = data.map((s) => ({
+            id: s.id,
+            code: s.code,
+            name: s.name,
+            nameBn: s.name_bn || null,
+            zone: s.zone || 'ER',
+            division: s.division || 'Sealdah',
+            district: s.district || null,
+            lat: s.lat != null ? Number(s.lat) : null,
+            lng: s.lng != null ? Number(s.lng) : null,
+          }));
+        }
+      }
+
       // Filter out phantom duplicate codes from user-facing list
       const cleanList = list.filter((s) => !PHANTOM_DUPLICATE_CODES.has(s.code.toUpperCase()));
       cachedStations = cleanList;

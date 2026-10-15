@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 import { resolveStation, CachedStation } from '@/services/stationService';
 import { LRUCache } from '@/lib/lru-cache';
 
@@ -107,46 +108,87 @@ async function ensureRouteIndex(): Promise<void> {
       console.log('[routeService] Building in-memory route index from DB...');
       const t0 = Date.now();
 
-      const allTrains = await prisma.train.findMany({
-        select: {
-          id: true,
-          number: true,
-          name: true,
-          type: true,
-          originStationCode: true,
-          destinationStationCode: true,
-          runningDays: true,
-          distanceKm: true,
-          scheduleStops: {
-            select: {
-              stationId: true,
-              sequenceNo: true,
-              arrivalTime: true,
-              departureTime: true,
-              haltMinutes: true,
-              dayOffset: true,
-              station: {
-                select: {
-                  name: true,
-                  code: true,
+      let allTrains: any[] = [];
+      try {
+        allTrains = await prisma.train.findMany({
+          select: {
+            id: true,
+            number: true,
+            name: true,
+            type: true,
+            originStationCode: true,
+            destinationStationCode: true,
+            runningDays: true,
+            distanceKm: true,
+            scheduleStops: {
+              select: {
+                stationId: true,
+                sequenceNo: true,
+                arrivalTime: true,
+                departureTime: true,
+                haltMinutes: true,
+                dayOffset: true,
+                station: {
+                  select: {
+                    name: true,
+                    code: true,
+                  },
                 },
               },
+              orderBy: { sequenceNo: 'asc' },
             },
-            orderBy: { sequenceNo: 'asc' },
           },
-        },
-      });
+        });
+      } catch (prismaErr) {
+        console.warn('[routeService] Prisma trains query failed, trying Supabase fallback...');
+      }
+
+      // If Prisma returned empty list (e.g. SQLite on Vercel Serverless), fetch from Supabase
+      if (!allTrains || allTrains.length === 0) {
+        const { data, error } = await supabase
+          .from('trains')
+          .select('*, schedule_stops(*, stations(name, code))');
+
+        if (error) {
+          console.error('[routeService] Supabase trains query error:', error.message);
+        } else if (data && data.length > 0) {
+          allTrains = data.map((t) => ({
+            id: t.id,
+            number: t.number,
+            name: t.name,
+            type: t.type,
+            originStationCode: t.origin_station_code,
+            destinationStationCode: t.destination_station_code,
+            runningDays: t.running_days,
+            distanceKm: t.distance_km,
+            scheduleStops: (t.schedule_stops || [])
+              .sort((a: any, b: any) => a.sequence_no - b.sequence_no)
+              .map((s: any) => ({
+                stationId: s.station_id,
+                sequenceNo: s.sequence_no,
+                arrivalTime: s.arrival_time,
+                departureTime: s.departure_time,
+                haltMinutes: s.halt_minutes,
+                dayOffset: s.day_offset,
+                station: {
+                  name: s.stations?.name || '',
+                  code: s.stations?.code || '',
+                },
+              })),
+          }));
+        }
+      }
 
       state.trainsByIdMap.clear();
       state.stopsByStationIdMap.clear();
       state.stopsByStationCodeMap.clear();
 
       for (const t of allTrains) {
-        const mappedStops: IndexedStop[] = t.scheduleStops.map((s) => ({
+        const mappedStops: IndexedStop[] = (t.scheduleStops || []).map((s: any) => ({
           trainId: t.id,
           stationId: s.stationId,
-          stationName: s.station.name,
-          stationCode: s.station.code.toUpperCase(),
+          stationName: s.station?.name || '',
+          stationCode: (s.station?.code || '').toUpperCase(),
           sequenceNo: s.sequenceNo,
           arrivalTime: s.arrivalTime,
           departureTime: s.departureTime,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getCachedTrainByNumber } from '@/lib/cache/trainDataCache';
 
 export async function GET(
   request: Request,
@@ -7,19 +7,7 @@ export async function GET(
 ) {
   const { number } = await params;
 
-  const train = await prisma.train.findUnique({
-    where: { number },
-    include: {
-      scheduleStops: {
-        include: {
-          station: true,
-        },
-        orderBy: {
-          sequenceNo: 'asc',
-        },
-      },
-    },
-  });
+  const train = await getCachedTrainByNumber(number);
 
   if (!train) {
     return NextResponse.json({ error: 'Train not found' }, { status: 404 });
@@ -31,3 +19,4 @@ export async function GET(
     },
   });
 }
+

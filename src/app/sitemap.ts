@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { prisma } from '@/lib/prisma';
+import { getAllStations } from '@/lib/station-cache';
 
 // Cache sitemap for 24 hours at CDN / edge layer
 export const revalidate = 86400;
@@ -59,14 +59,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // All 556 Stations dynamically indexed
-  const stations = await prisma.station.findMany({
-    select: { code: true, createdAt: true },
-  });
+  // All stations dynamically indexed
+  const stations = await getAllStations();
 
   const stationRoutes: MetadataRoute.Sitemap = stations.map((s) => ({
     url: `${baseUrl}/station/${s.code.toLowerCase()}`,
-    lastModified: s.createdAt || new Date(),
+    lastModified: (s as any).createdAt ? new Date((s as any).createdAt) : new Date(),
     changeFrequency: 'daily',
     priority: 0.8,
   }));

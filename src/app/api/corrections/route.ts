@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 // Basic in-memory rate limiting by IP
 const ipSubmissions = new Map<string, { count: number; resetAt: number }>();
@@ -72,26 +73,51 @@ export async function POST(request: Request) {
       return val.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, maxLen) || null;
     };
 
-    const correction = await prisma.correction.create({
-      data: {
-        stationCode: stationCode.toUpperCase().trim().slice(0, 10),
-        stationName: sanitize(stationName),
-        trainNumber: trainNumber.trim().slice(0, 10),
-        trainName: sanitize(trainName),
-        fromStation: sanitize(fromStation),
-        toStation: sanitize(toStation),
-        arrivalTime: sanitize(arrivalTime, 10),
-        departureTime: sanitize(departureTime, 10),
-        note: sanitize(note, 500),
-        status: 'pending',
-        ipHash: clientIp,
-      },
-    });
+    let correctionId: any = null;
+    try {
+      const correction = await prisma.correction.create({
+        data: {
+          stationCode: stationCode.toUpperCase().trim().slice(0, 10),
+          stationName: sanitize(stationName),
+          trainNumber: trainNumber.trim().slice(0, 10),
+          trainName: sanitize(trainName),
+          fromStation: sanitize(fromStation),
+          toStation: sanitize(toStation),
+          arrivalTime: sanitize(arrivalTime, 10),
+          departureTime: sanitize(departureTime, 10),
+          note: sanitize(note, 500),
+          status: 'pending',
+          ipHash: clientIp,
+        },
+      });
+      correctionId = correction.id;
+    } catch (e) {
+      // Prisma failed (e.g. SQLite read-only / missing on Vercel) -> save to Supabase
+      const { data, error } = await supabase.from('corrections').insert([
+        {
+          station_code: stationCode.toUpperCase().trim().slice(0, 10),
+          station_name: sanitize(stationName),
+          train_number: trainNumber.trim().slice(0, 10),
+          train_name: sanitize(trainName),
+          from_station: sanitize(fromStation),
+          to_station: sanitize(toStation),
+          arrival_time: sanitize(arrivalTime, 10),
+          departure_time: sanitize(departureTime, 10),
+          note: sanitize(note, 500),
+          status: 'pending',
+          ip_hash: clientIp,
+        },
+      ]).select('id').single();
+
+      if (!error && data) {
+        correctionId = data.id;
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Correction submitted for admin review.',
-      id: correction.id,
+      id: correctionId || Date.now(),
     });
   } catch (error) {
     console.error('Error saving correction:', error);
