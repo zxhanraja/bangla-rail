@@ -270,11 +270,29 @@ const STATION_ALIASES: Record<string, string> = {
   'M-SECTOR-V': 'M-SCV',
   'M-HOWRAH-MAIDAN': 'M-HMD',
   'M-ESP2': 'M-ESP',
+  'M-ESP': 'M-ESP2',
+  'M-JOKA': 'M-JOK',
+  'M-JOK': 'M-JOKA',
+  'M-SEALDAH': 'M-SDAH',
+  'M-HOWRAH': 'M-HWH',
+
+  // Tribeni & Kuntighat & Majerhat & Taki Road & Fulia
+  TRS: 'TBAE',
+  TBAE: 'TRS',
+  KGT: 'KJU',
+  KJU: 'KGT',
+  MJHT: 'MJT',
+  MJT: 'MJHT',
+  TKI: 'TKNR',
+  TKNR: 'TKI',
+  PKRA: 'FNAE',
+  FNAE: 'PKRA',
+  CLAH: 'CDH',
+  CDH: 'CLAH',
 
   // Phantom duplicate codes mapped to active canonical stations
   CNJG: 'CG',
-  DMHB: 'DH',
-  D: 'DH',
+  DMHB: 'D',
   BDGE: 'BGB',
   BJNJ: 'BNJ',
   DKE: 'DDJ',
@@ -303,7 +321,7 @@ const STATION_ALIASES: Record<string, string> = {
   RMPH: 'RPH',
   RNGE: 'RNG',
   ANDL: 'UDL',
-  PNGH: 'PDAE',
+  PNGH: 'PAN',
   HBRH: 'HB',
   GBDG: 'GBG',
   CRPD: 'CDP',
@@ -327,32 +345,44 @@ const STATION_ALIASES: Record<string, string> = {
   CHLS: 'CLD',
   HSMR: 'HSA',
   BPSN: 'BOE',
-  LKAE: 'LKPR',
-  SBGR: 'SJRM',
-  GRYA: 'GIA',
+  GRYA: 'GARI',
   NSE: 'NSF',
   BQH: 'BQY',
-  HLR: 'HLZ',
-  HSTN: 'HLZ',
+  HSTN: 'HLR',
 };
 
 function getStopsForStation(stationId: string, stationCode: string): IndexedStop[] {
-  const byId = state.stopsByStationIdMap.get(stationId);
-  if (byId && byId.length > 0) return byId;
-
-  // Fallback: look up by code (handles ID mismatch edge cases)
   const upper = stationCode.toUpperCase();
-  const byCode = state.stopsByStationCodeMap.get(upper);
-  if (byCode && byCode.length > 0) return byCode;
+  const combinedMap = new Map<string, IndexedStop>();
 
-  // Fallback: look up by station alias
+  // Helper to add stops avoiding train duplicate entries (prefer lowest sequence)
+  const addStops = (stops: IndexedStop[] | undefined) => {
+    if (!stops) return;
+    for (const s of stops) {
+      const existing = combinedMap.get(s.trainId);
+      if (!existing || s.sequenceNo < existing.sequenceNo) {
+        combinedMap.set(s.trainId, s);
+      }
+    }
+  };
+
+  // 1. By station UUID
+  addStops(state.stopsByStationIdMap.get(stationId));
+
+  // 2. By canonical code
+  addStops(state.stopsByStationCodeMap.get(upper));
+
+  // 3. By aliases (e.g. M-ESP <-> M-ESP2, TBAE <-> TRS, KJU <-> KGT, MJT <-> MJHT)
   const alias = STATION_ALIASES[upper];
   if (alias) {
-    const byAlias = state.stopsByStationCodeMap.get(alias);
-    if (byAlias && byAlias.length > 0) return byAlias;
+    addStops(state.stopsByStationCodeMap.get(alias));
+    const revAlias = STATION_ALIASES[alias];
+    if (revAlias && revAlias !== upper) {
+      addStops(state.stopsByStationCodeMap.get(revAlias));
+    }
   }
 
-  return [];
+  return Array.from(combinedMap.values());
 }
 
 export async function planRoute(

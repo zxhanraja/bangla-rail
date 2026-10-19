@@ -24,35 +24,56 @@ async function findStation(query: string) {
   return resolveStation(clean);
 }
 
+import { prisma } from '@/lib/prisma';
+
 export default async function SearchPage({ searchParams }: Props) {
   const params = await searchParams;
   const q = params.q?.trim() || '';
   let fromQuery = params.from?.trim() || '';
   let toQuery = params.to?.trim() || '';
-  // Check if query is directly a train number (e.g., 37816, 12301, M-101)
-  if (q && (/^\d{4,5}$/.test(q) || /^m-\d+/i.test(q))) {
+
+  // 1. Check if query is directly a train number (e.g., 37816, 12301, M-101, M-GR-01)
+  if (q && (/^\d{4,5}$/.test(q) || /^m-[a-z0-9\-]+/i.test(q))) {
     redirect(`/train/${q.trim().toUpperCase()}`);
   }
 
+  // 2. If it's a single station query, test if whole query matches a station first!
+  if (q && !fromQuery && !toQuery) {
+    const singleStation = await findStation(q);
+    if (singleStation) {
+      redirect(`/station/${singleStation.code.toLowerCase()}`);
+    }
+
+    // Check if it's a train by name (e.g. "Matribhoomi", "Black Diamond", "Vande Bharat")
+    try {
+      const matchedTrain = await prisma.train.findFirst({
+        where: {
+          OR: [
+            { name: { contains: q } },
+            { number: { contains: q } }
+          ]
+        },
+        select: { number: true }
+      });
+      if (matchedTrain) {
+        redirect(`/train/${matchedTrain.number}`);
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // 3. Explicit route pattern check (e.g. "Howrah to Bandel" or "Howrah - Bandel")
   if (q && (!fromQuery || !toQuery)) {
-    // Parse "bandel to howrah", "bandel - howrah", "bandel howrah"
     const cleaned = cleanTerm(q);
     if (cleaned.includes(' to ')) {
       const parts = cleaned.split(/\s+to\s+/i);
       fromQuery = parts[0]?.trim() || '';
       toQuery = parts[1]?.trim() || '';
-    } else if (cleaned.includes('-')) {
-      const parts = cleaned.split('-');
+    } else if (cleaned.includes(' - ') || cleaned.includes(' -> ') || cleaned.includes(' ➔ ')) {
+      const parts = cleaned.split(/\s+(?:-|->|➔)\s+/);
       fromQuery = parts[0]?.trim() || '';
       toQuery = parts[1]?.trim() || '';
-    } else {
-      const parts = cleaned.split(/\s+/);
-      if (parts.length >= 2) {
-        fromQuery = parts[0];
-        toQuery = parts.slice(1).join(' ');
-      } else if (parts.length === 1) {
-        fromQuery = parts[0];
-      }
     }
   }
 

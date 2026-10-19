@@ -31,10 +31,10 @@ export default function Header() {
       const from = routeMatch[1].trim();
       const to = routeMatch[2].trim();
       router.push(`/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
-    } else if (/^\d{4,5}$/.test(query)) {
-      router.push(`/train/${query}`);
+    } else if (/^\d{4,5}$/.test(query) || /^m-[a-z0-9\-]+/i.test(query)) {
+      router.push(`/train/${query.toUpperCase()}`);
     } else {
-      router.push(`/?from=${encodeURIComponent(query)}&to=Howrah`);
+      router.push(`/search?q=${encodeURIComponent(query)}`);
     }
     setMobileSearchOpen(false);
   };

@@ -83,7 +83,7 @@ const POPULAR_METRO_STATIONS: { code: string; name: string }[] = [
   { code: 'M-SCV', name: 'Sector V' },
   { code: 'M-DKS', name: 'Dakshineswar' },
   { code: 'M-KVS', name: 'Kavi Subhash' },
-  { code: 'M-JOKA', name: 'Joka' },
+  { code: 'M-JOK', name: 'Joka' },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -300,12 +300,15 @@ function SearchWidget({
   }
 
   // Filter out mismatched params between Local and Metro
-  const isMetroCode = (val: string) => val.trim().toUpperCase().startsWith('M-');
-  if (isMetro && effectiveFrom && !isMetroCode(effectiveFrom) && !isMetroCode(effectiveTo)) {
+  const isMetroTerm = (val: string) => {
+    const u = val.trim().toUpperCase();
+    return u.startsWith('M-') || u.includes('METRO') || u.includes('SECTOR') || u.includes('MAIDAN') || u.includes('ESPLANADE') || u.includes('DAKSHINESWAR') || u.includes('JOKA');
+  };
+  if (isMetro && effectiveFrom && !isMetroTerm(effectiveFrom) && !isMetroTerm(effectiveTo)) {
     effectiveFrom = '';
     effectiveTo = '';
   }
-  if (!isMetro && (isMetroCode(effectiveFrom) || isMetroCode(effectiveTo))) {
+  if (!isMetro && (effectiveFrom.toUpperCase().startsWith('M-') || effectiveTo.toUpperCase().startsWith('M-'))) {
     effectiveFrom = '';
     effectiveTo = '';
   }
@@ -336,17 +339,35 @@ function SearchWidget({
   const toWrapperRef = useRef<HTMLDivElement>(null);
   const lastLoadedRouteRef = useRef<string>('');
 
+  // Isolate Metro stations when in Metro mode so railway stations don't crowd the list
+  const relevantStations = useMemo(() => {
+    if (isMetro) {
+      return allStations.filter(
+        (s) =>
+          s.code.startsWith('M-') ||
+          s.division === 'Kolkata Metro' ||
+          s.zone === 'KMR' ||
+          s.name.toLowerCase().includes('metro')
+      );
+    }
+    // In local mode, keep all stations but exclude 'M-' codes from initial unqueried suggestions
+    return allStations;
+  }, [allStations, isMetro]);
+
   // Filter stations
   const filterStations = useCallback(
     (query: string): StationItem[] => {
-      if (!allStations.length) return [];
+      if (!relevantStations.length) return [];
       const clean = query.trim().toLowerCase();
-      if (!clean) return allStations.slice(0, 30);
+      if (!clean) {
+        if (isMetro) return relevantStations;
+        return relevantStations.filter((s) => !s.code.startsWith('M-')).slice(0, 30);
+      }
       const upper = clean.toUpperCase();
       const exactCode: StationItem[] = [];
       const prefix: StationItem[] = [];
       const contains: StationItem[] = [];
-      for (const s of allStations) {
+      for (const s of relevantStations) {
         const sCode = s.code.toUpperCase();
         const sName = s.name.toLowerCase();
         const sBn = s.nameBn || '';
@@ -356,7 +377,7 @@ function SearchWidget({
       }
       return [...exactCode, ...prefix, ...contains].slice(0, 30);
     },
-    [allStations]
+    [relevantStations, isMetro]
   );
 
   const filteredFromStations = useMemo(() => filterStations(fromInput), [filterStations, fromInput]);
@@ -493,16 +514,22 @@ function SearchWidget({
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     let fromCode = extractCode(fromInput);
-    if (!selectedFromStation && filteredFromStations.length > 0) {
+    if (filteredFromStations.length > 0) {
       const top = filteredFromStations[0];
-      handleSelectFrom(top);
-      fromCode = top.code;
+      const cleanFrom = fromInput.trim().toLowerCase();
+      if (!selectedFromStation || (!fromInput.includes(`(${selectedFromStation.code})`) && !selectedFromStation.name.toLowerCase().includes(cleanFrom))) {
+        handleSelectFrom(top);
+        fromCode = top.code;
+      }
     }
     let toCode = extractCode(toInput);
-    if (!selectedToStation && filteredToStations.length > 0) {
+    if (filteredToStations.length > 0) {
       const top = filteredToStations[0];
-      handleSelectTo(top);
-      toCode = top.code;
+      const cleanTo = toInput.trim().toLowerCase();
+      if (!selectedToStation || (!toInput.includes(`(${selectedToStation.code})`) && !selectedToStation.name.toLowerCase().includes(cleanTo))) {
+        handleSelectTo(top);
+        toCode = top.code;
+      }
     }
     setIsFromOpen(false);
     setIsToOpen(false);

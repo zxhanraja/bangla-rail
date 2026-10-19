@@ -133,11 +133,29 @@ export const STATION_ALIASES: Record<string, string> = {
   'M-SECTOR-V': 'M-SCV',
   'M-HOWRAH-MAIDAN': 'M-HMD',
   'M-ESP2': 'M-ESP',
+  'M-ESP': 'M-ESP2',
+  'M-JOKA': 'M-JOK',
+  'M-JOK': 'M-JOKA',
+  'M-SEALDAH': 'M-SDAH',
+  'M-HOWRAH': 'M-HWH',
+
+  // Tribeni & Kuntighat & Majerhat
+  TRS: 'TBAE',
+  TBAE: 'TRS',
+  KGT: 'KJU',
+  KJU: 'KGT',
+  MJHT: 'MJT',
+  MJT: 'MJHT',
+  TKI: 'TKNR',
+  TKNR: 'TKI',
+  PKRA: 'FNAE',
+  FNAE: 'PKRA',
+  CLAH: 'CDH',
+  CDH: 'CLAH',
 
   // Phantom duplicate codes mapped to active canonical stations
   CNJG: 'CG',
-  DMHB: 'DH',
-  D: 'DH',
+  DMHB: 'D',
   BDGE: 'BGB',
   BJNJ: 'BNJ',
   DKE: 'DDJ',
@@ -166,7 +184,7 @@ export const STATION_ALIASES: Record<string, string> = {
   RMPH: 'RPH',
   RNGE: 'RNG',
   ANDL: 'UDL',
-  PNGH: 'PDAE',
+  PNGH: 'PAN',
   HBRH: 'HB',
   GBDG: 'GBG',
   CRPD: 'CDP',
@@ -190,23 +208,20 @@ export const STATION_ALIASES: Record<string, string> = {
   CHLS: 'CLD',
   HSMR: 'HSA',
   BPSN: 'BOE',
-  LKAE: 'LKPR',
-  SBGR: 'SJRM',
-  GRYA: 'GIA',
+  GRYA: 'GARI',
   NSE: 'NSF',
   BQH: 'BQY',
-  HLR: 'HLZ',
-  HSTN: 'HLZ',
+  HSTN: 'HLR',
 };
 
 // Codes of phantom duplicate stations that have 0 trains and duplicate active stations
 export const PHANTOM_DUPLICATE_CODES = new Set([
-  'CNJG', 'DMHB', 'D', 'BDGE', 'BJNJ', 'DKE', 'DKJN', 'NKPR', 'SNTG', 'ULBR',
-  'MNCD', 'MCAE', 'PNKA', 'DGSM', 'TRSE', 'ARSW', 'BRJN', 'BLGJ', 'BYNR', 'KLYJ',
+  'CNJG', 'DMHB', 'BDGE', 'BJNJ', 'DKE', 'DKJN', 'NKPR', 'SNTG', 'ULBR',
+  'MNCD', 'PNKA', 'DGSM', 'TRSE', 'ARSW', 'BRJN', 'BLGJ', 'BYNR', 'KLYJ',
   'KNST', 'SNTP', 'KRSJ', 'LGLJ', 'BRMP', 'DGRP', 'BPST', 'RMPH', 'RNGE', 'ANDL',
   'PNGH', 'HBRH', 'GBDG', 'CRPD', 'KHNA', 'AGPD', 'SGMR', 'TLGD', 'KLAE', 'MGAE',
   'PHDE', 'SKLE', 'TMLK', 'JGRM', 'BNKR', 'PRLJ', 'BSNP', 'RYGJ', 'HKAE', 'ALDE',
-  'JLPD', 'CHLS', 'HSMR', 'BPSN', 'LKAE', 'SBGR', 'GRYA', 'NSE', 'BQH', 'HLR', 'HSTN'
+  'JLPD', 'CHLS', 'HSMR', 'BPSN', 'GRYA', 'NSE', 'BQH', 'HSTN', 'TRS', 'KGT', 'MJHT'
 ]);
 
 // Common typos, transliterations, and colloquial Station Search Queries
