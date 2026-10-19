@@ -253,7 +253,7 @@ export default function TrainsBetweenClient({ fromStation, toStation, trains }: 
             placeholder={`Search by train name, number (e.g. 37812, Fast Local, Shatabdi)...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[#FAF8F3] border border-[#E0DBD0] rounded-xl text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            className="w-full pl-10 pr-4 py-2.5 bg-[#FAF8F3] border border-[#E0DBD0] rounded-xl text-base sm:text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900"
           />
         </div>
 

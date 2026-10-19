@@ -17,7 +17,8 @@ export const viewport: Viewport = {
   themeColor: '#FACC15',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 // ── 6 & 7: Meta Titles + Descriptions + Social Preview ────────────────────

@@ -109,14 +109,14 @@ export default function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search train or station..."
-                  className="w-full h-9 pl-8 pr-3 text-xs bg-zinc-100 hover:bg-zinc-50 text-black placeholder-zinc-400 rounded-xl border border-zinc-300 focus:outline-none focus:border-black focus:bg-white focus:ring-2 focus:ring-yellow-400/50 transition-all font-semibold"
+                  className="w-full h-9 pl-8 pr-3 text-sm sm:text-xs bg-zinc-100 hover:bg-zinc-50 text-black placeholder-zinc-400 rounded-xl border border-zinc-300 focus:outline-none focus:border-black focus:bg-white focus:ring-2 focus:ring-yellow-400/50 transition-all font-semibold"
                 />
               </div>
             </form>
 
             <button
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="sm:hidden p-2 text-black hover:bg-zinc-100 rounded-xl focus:outline-none"
+              className="sm:hidden p-2 text-black hover:bg-zinc-100 rounded-xl focus:outline-none active:scale-95 transition-transform"
               aria-label="Search"
             >
               <Search className="w-5 h-5 stroke-[2.2]" />
@@ -124,7 +124,7 @@ export default function Header() {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-black hover:bg-zinc-100 rounded-xl focus:outline-none"
+              className="md:hidden p-2 text-black hover:bg-zinc-100 rounded-xl focus:outline-none active:scale-95 transition-transform"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5 stroke-[2.2]" /> : <Menu className="w-5 h-5 stroke-[2.2]" />}
@@ -136,14 +136,13 @@ export default function Header() {
         {mobileSearchOpen && (
           <div className="sm:hidden pb-3 pt-1">
             <form onSubmit={handleSearch} className="relative">
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
-                autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search train name or number..."
-                className="w-full h-10 pl-10 pr-10 text-xs bg-zinc-100 text-black placeholder-zinc-400 rounded-xl border-2 border-black focus:outline-none focus:bg-white font-bold"
+                className="w-full h-11 pl-10 pr-10 text-base sm:text-sm bg-zinc-100 text-black placeholder-zinc-400 rounded-xl border-2 border-black focus:outline-none focus:bg-white font-bold"
               />
               {searchQuery && (
                 <button

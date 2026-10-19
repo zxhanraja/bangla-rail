@@ -70,7 +70,7 @@ export default function StationClient({ station }: StationProps) {
               placeholder="Search train name or number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 pl-9 pr-3 text-xs bg-[#F7F5EE] border border-[#E0DBD0] rounded-lg focus:outline-none focus:border-black font-medium"
+              className="w-full h-9 pl-9 pr-3 text-base sm:text-xs bg-[#F7F5EE] border border-[#E0DBD0] rounded-lg focus:outline-none focus:border-black font-medium"
             />
           </div>
 

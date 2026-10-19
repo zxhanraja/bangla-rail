@@ -564,7 +564,7 @@ function SearchWidget({
 
   // Yellow, Black, and White UI styling
   const inputCls =
-    'w-full h-12 pl-10 pr-9 bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white border-2 border-zinc-300 focus:border-black rounded-xl text-sm font-bold text-black placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/40 transition-all shadow-2xs';
+    'w-full h-12 pl-10 pr-9 bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white border-2 border-zinc-300 focus:border-black rounded-xl text-base sm:text-sm font-bold text-black placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/40 transition-all shadow-2xs';
   const submitBtnCls =
     'w-full md:w-auto h-12 px-8 bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-500 text-black text-sm font-black rounded-xl border-2 border-black flex items-center justify-center gap-2.5 shadow-sm active:scale-95 transition-all disabled:opacity-60 whitespace-nowrap';
   const cardCls =
