@@ -795,6 +795,11 @@ async function run() {
         });
         totalUpsertedTrains++;
 
+        // Clear any old/corrupted stops for this train before inserting verified corridor stops
+        await prisma.scheduleStop.deleteMany({
+          where: { trainId: tr.id },
+        });
+
         for (let i = 0; i < stopsList.length; i++) {
           const s = stopsList[i];
           const isFirst = i === 0;
