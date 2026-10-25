@@ -187,6 +187,8 @@ export default function Footer() {
               {[
                 { label: '🌊 Underwater Metro (Green Line)', href: '/trains-between/m-hmd-to-m-scv', highlight: true },
                 { label: 'North-South Blue Line Metro', href: '/trains-between/dakshineswar-to-kavi-subhash' },
+                { label: 'Yellow Line (Noapara - Airport)', href: '/trains-between/noapara-metro-to-jai-hind-airport-metro', highlight: true },
+                { label: 'Orange Line (Kavi Subhash - Beliaghata)', href: '/trains-between/kavi-subhash-metro-to-beliaghata-metro' },
                 { label: 'Purple Line (Joka Metro)', href: '/trains-between/joka-to-majerhat' },
                 { label: 'Howrah → Digha Coastal', href: '/trains-between/hwh-to-dgha' },
                 { label: 'Howrah → NJP Vande Bharat', href: '/trains-between/hwh-to-njp' },

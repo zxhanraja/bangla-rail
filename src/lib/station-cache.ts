@@ -138,6 +138,22 @@ export const STATION_ALIASES: Record<string, string> = {
   'M-JOK': 'M-JOKA',
   'M-SEALDAH': 'M-SDAH',
   'M-HOWRAH': 'M-HWH',
+  'M-APO': 'M-JAI',
+  'M-JAI': 'M-APO',
+  'M-AIRPORT': 'M-APO',
+  'M-BELEGHATA': 'M-BLG3',
+  'M-BELIAGHATA': 'M-BLG3',
+
+  // Suburban Code Mismatches
+  LLAH: 'LLH',
+  BELR: 'BEQ',
+  BALY: 'BLY',
+  UTAE: 'UPA',
+  HLMT: 'HMZ',
+  KTAE: 'KOG',
+  RSAE: 'RIS',
+  SRAE: 'SRP',
+  HGY: 'HRAE',
 
   // Tribeni & Kuntighat & Majerhat
   TRS: 'TBAE',

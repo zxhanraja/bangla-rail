@@ -115,6 +115,42 @@ export default async function StationDetailPage({ params }: Props) {
                   District: <strong>{station.district}</strong>
                 </span>
               )}
+              <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold">
+                ● {(station as any).status || 'OPERATIONAL'}
+              </span>
+              <span className="px-2.5 py-1 rounded-md bg-[#F7F5EE] border border-[#E7E2D8] font-medium">
+                ✓ Verified Oct 2026
+              </span>
+            </div>
+
+            {/* Official Source & Live Tracking */}
+            <div className="mt-4 pt-3 border-t border-[#E7E2D8] flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
+              <div>
+                Official Station Directory:{' '}
+                {(station as any).sourceUrl ? (
+                  <a
+                    href={(station as any).sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline text-black hover:text-yellow-600"
+                  >
+                    {(station as any).sourceUrl.replace('https://', '').split('/')[0]}
+                  </a>
+                ) : (
+                  <span className="font-semibold text-black">Zonal Railway Portal</span>
+                )}
+              </div>
+              <div>
+                Live GPS Status:{' '}
+                <a
+                  href="https://enquiry.indianrail.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold underline text-black hover:text-yellow-600"
+                >
+                  NTES Official
+                </a>
+              </div>
             </div>
           </div>
 

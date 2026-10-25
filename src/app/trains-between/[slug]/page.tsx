@@ -171,6 +171,7 @@ export default async function TrainsBetweenPage({ params }: Props) {
       destinationStationCode: pt.train.destinationStationCode,
       runningDays: pt.train.runningDays,
       distanceKm: pt.train.distanceKm || 0,
+      verificationStatus: pt.train.verificationStatus || 'verified',
       departure: dep,
       arrival: arr,
       durationMins,

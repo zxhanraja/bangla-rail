@@ -121,6 +121,8 @@ export default function Footer() {
               {[
                 { label: 'Underwater Green Line Metro', href: '/trains-between/m-hmd-to-m-scv' },
                 { label: 'Blue Line (Dakshineswar - Kavi Subhash)', href: '/trains-between/dakshineswar-to-kavi-subhash' },
+                { label: 'Yellow Line (Noapara - Airport)', href: '/trains-between/noapara-metro-to-jai-hind-airport-metro' },
+                { label: 'Orange Line (Kavi Subhash - Beliaghata)', href: '/trains-between/kavi-subhash-metro-to-beliaghata-metro' },
                 { label: 'Sealdah → Ranaghat Local', href: '/trains-between/sealdah-to-ranaghat' },
                 { label: 'Sealdah → Krishnanagar City', href: '/trains-between/sealdah-to-krishnanagar-city' },
                 { label: 'Sealdah Station Timetable', href: '/station/sdah' },

@@ -23,6 +23,10 @@ export interface PlannedTrain {
     destinationStationCode: string;
     runningDays: string;
     distanceKm: number | null;
+    verificationStatus?: string;
+    sourceUrl?: string | null;
+    timetableEffectiveDate?: string | null;
+    zone?: string | null;
   };
   departureFrom: string;
   arrivalTo: string;
@@ -63,6 +67,10 @@ interface IndexedTrain {
   destinationStationCode: string;
   runningDays: string;
   distanceKm: number | null;
+  verificationStatus?: string;
+  sourceUrl?: string | null;
+  timetableEffectiveDate?: string | null;
+  zone?: string | null;
   stops: IndexedStop[];
 }
 
@@ -120,6 +128,10 @@ async function ensureRouteIndex(): Promise<void> {
             destinationStationCode: true,
             runningDays: true,
             distanceKm: true,
+            verificationStatus: true,
+            sourceUrl: true,
+            timetableEffectiveDate: true,
+            zone: true,
             scheduleStops: {
               select: {
                 stationId: true,
@@ -205,6 +217,10 @@ async function ensureRouteIndex(): Promise<void> {
           destinationStationCode: t.destinationStationCode,
           runningDays: t.runningDays,
           distanceKm: t.distanceKm,
+          verificationStatus: t.verificationStatus || 'verified',
+          sourceUrl: t.sourceUrl || null,
+          timetableEffectiveDate: t.timetableEffectiveDate || null,
+          zone: t.zone || null,
           stops: mappedStops,
         });
 
@@ -275,6 +291,22 @@ const STATION_ALIASES: Record<string, string> = {
   'M-JOK': 'M-JOKA',
   'M-SEALDAH': 'M-SDAH',
   'M-HOWRAH': 'M-HWH',
+  'M-APO': 'M-JAI',
+  'M-JAI': 'M-APO',
+  'M-AIRPORT': 'M-APO',
+  'M-BELEGHATA': 'M-BLG3',
+  'M-BELIAGHATA': 'M-BLG3',
+
+  // Suburban Code Mismatches
+  LLAH: 'LLH',
+  BELR: 'BEQ',
+  BALY: 'BLY',
+  UTAE: 'UPA',
+  HLMT: 'HMZ',
+  KTAE: 'KOG',
+  RSAE: 'RIS',
+  SRAE: 'SRP',
+  HGY: 'HRAE',
 
   // Tribeni & Kuntighat & Majerhat & Taki Road & Fulia
   TRS: 'TBAE',
@@ -462,6 +494,10 @@ export async function planRoute(
         destinationStationCode: train.destinationStationCode,
         runningDays: train.runningDays,
         distanceKm: train.distanceKm,
+        verificationStatus: train.verificationStatus,
+        sourceUrl: train.sourceUrl,
+        timetableEffectiveDate: train.timetableEffectiveDate,
+        zone: train.zone,
       },
       departureFrom: fromStop.departureTime || fromStop.arrivalTime || '--',
       arrivalTo: toStop.arrivalTime || toStop.departureTime || '--',

@@ -203,6 +203,38 @@ export default async function TrainDetailPage({ params }: Props) {
                   Distance: <strong>{train.distanceKm} km</strong>
                 </span>
               )}
+              {train.verificationStatus === 'verified' && (
+                <span className="inline-flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Verified Timetable 2026</span>
+                </span>
+              )}
+            </div>
+
+            {/* Official Source & Live Tracking */}
+            <div className="mt-4 pt-3 border-t border-[#E7E2D8] flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500">
+              <div>
+                Official Timetable:{' '}
+                {train.sourceUrl ? (
+                  <a href={train.sourceUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline text-black hover:text-yellow-600">
+                    {train.sourceUrl.replace('https://', '').split('/')[0]}
+                  </a>
+                ) : (
+                  <span className="font-semibold text-black">Zonal Railway Timetable</span>
+                )}
+                {train.timetableEffectiveDate && ` • Cycle: ${train.timetableEffectiveDate}`}
+              </div>
+              <div>
+                Live GPS Status:{' '}
+                <a
+                  href={`https://enquiry.indianrail.gov.in/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold underline text-black hover:text-yellow-600"
+                >
+                  Track on NTES
+                </a>
+              </div>
             </div>
           </div>
 

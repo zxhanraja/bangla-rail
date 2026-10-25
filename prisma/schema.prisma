@@ -8,31 +8,41 @@ generator client {
 }
 
 model Station {
-  id          String   @id @default(cuid())
-  code        String   @unique
-  name        String
-  nameBn      String?
-  zone        String   @default("ER")
-  division    String   @default("Sealdah")
-  district    String?
-  lat         Float?
-  lng         Float?
-  createdAt   DateTime @default(now())
+  id              String    @id @default(cuid())
+  code            String    @unique
+  name            String
+  nameBn          String?
+  zone            String    @default("ER")
+  division        String    @default("Sealdah")
+  district        String?
+  lat             Float?
+  lng             Float?
+  // Provenance & status fields
+  status          String    @default("OPERATIONAL") // OPERATIONAL | TEMPORARILY_CLOSED | UNDER_CONSTRUCTION | PROPOSED | DISCONTINUED
+  sourceUrl       String?   // URL or document reference for station data
+  verifiedAt      DateTime? // Last time this station was verified against an official source
+  openedDate      String?   // Date station opened or last status changed (ISO date string)
+  createdAt       DateTime  @default(now())
 
   scheduleStops ScheduleStop[]
   corrections   Correction[]
 }
 
 model Train {
-  id                    String   @id @default(cuid())
-  number                String   @unique
-  name                  String
-  type                  String   @default("EMU Local")
-  originStationCode     String
+  id                     String    @id @default(cuid())
+  number                 String    @unique
+  name                   String
+  type                   String    @default("EMU Local")
+  originStationCode      String
   destinationStationCode String
-  runningDays           String   @default("Daily")
-  distanceKm            Int?
-  createdAt             DateTime @default(now())
+  runningDays            String    @default("Daily")
+  distanceKm             Int?
+  // Provenance & verification fields
+  verificationStatus     String    @default("unverified") // unverified | estimated | community | verified
+  sourceUrl              String?   // URL or document reference for timetable data
+  timetableEffectiveDate String?   // Effective date of this timetable (ISO date)
+  zone                   String?   // Railway zone (ER, SER, etc.)
+  createdAt              DateTime  @default(now())
 
   scheduleStops ScheduleStop[]
 }
@@ -42,11 +52,12 @@ model ScheduleStop {
   trainId        String
   stationId      String
   sequenceNo     Int
-  dayOffset      Int      @default(1)
-  arrivalTime    String?  // HH:mm
-  departureTime  String?  // HH:mm
-  haltMinutes    Int      @default(1)
-  source         String   @default("seed") // 'seed' | 'community' | 'verified'
+  dayOffset      Int      @default(0) // 0 = same day as origin, 1 = next day, etc.
+  arrivalTime    String?  // HH:mm (null for origin terminus)
+  departureTime  String?  // HH:mm (null for destination terminus)
+  haltMinutes    Int      @default(0)
+  // source: 'seed'=initial hardcoded | 'estimated'=auto-generated times | 'community'=user-submitted | 'verified'=cross-checked against official source
+  source         String   @default("seed")
   lastVerifiedAt DateTime @default(now())
 
   train   Train   @relation(fields: [trainId], references: [id], onDelete: Cascade)
@@ -55,6 +66,7 @@ model ScheduleStop {
   @@unique([trainId, stationId])
   @@index([stationId])
   @@index([trainId])
+  @@index([sequenceNo])
 }
 
 model Correction {
@@ -85,4 +97,22 @@ model AdminUser {
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+}
+
+// Audit trail for dataset imports and updates
+model DatasetVersion {
+  id              Int      @id @default(autoincrement())
+  versionTag      String   // e.g. "2026-10-25-v1"
+  sourceName      String   // e.g. "Eastern Railway Official Timetable"
+  sourceUrl       String?  // URL or file reference
+  retrievedAt     DateTime @default(now())
+  effectiveDate   String?  // Timetable effective date (ISO date string)
+  stationsAdded   Int      @default(0)
+  trainsAdded     Int      @default(0)
+  stopsAdded      Int      @default(0)
+  validationStatus String  @default("pending") // pending | passed | failed | partial
+  notes           String?  // Summary of changes, warnings, or known limitations
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
 }

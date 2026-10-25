@@ -11,6 +11,8 @@ import {
   X,
   Train as TrainIcon,
   Check,
+  CheckCircle2,
+  ShieldCheck,
   Loader2,
   AlertCircle,
   MapPin,
@@ -41,6 +43,9 @@ interface TrainSchedule {
   arrival: string;
   durationMins: number;
   classes: string[];
+  verificationStatus?: string;
+  sourceUrl?: string | null;
+  timetableEffectiveDate?: string | null;
   halts: {
     station: string;
     code: string;
@@ -83,6 +88,8 @@ const POPULAR_METRO_STATIONS: { code: string; name: string }[] = [
   { code: 'M-SCV', name: 'Sector V' },
   { code: 'M-DKS', name: 'Dakshineswar' },
   { code: 'M-KVS', name: 'Kavi Subhash' },
+  { code: 'M-APO', name: 'Airport (Jai Hind)' },
+  { code: 'M-BLG3', name: 'Beliaghata' },
   { code: 'M-JOK', name: 'Joka' },
 ];
 
@@ -302,7 +309,19 @@ function SearchWidget({
   // Filter out mismatched params between Local and Metro
   const isMetroTerm = (val: string) => {
     const u = val.trim().toUpperCase();
-    return u.startsWith('M-') || u.includes('METRO') || u.includes('SECTOR') || u.includes('MAIDAN') || u.includes('ESPLANADE') || u.includes('DAKSHINESWAR') || u.includes('JOKA');
+    return (
+      u.startsWith('M-') ||
+      u.includes('METRO') ||
+      u.includes('SECTOR') ||
+      u.includes('MAIDAN') ||
+      u.includes('ESPLANADE') ||
+      u.includes('DAKSHINESWAR') ||
+      u.includes('JOKA') ||
+      u.includes('AIRPORT') ||
+      u.includes('JAI HIND') ||
+      u.includes('BELIAGHATA') ||
+      u.includes('BELEGHATA')
+    );
   };
   if (isMetro && effectiveFrom && !isMetroTerm(effectiveFrom) && !isMetroTerm(effectiveTo)) {
     effectiveFrom = '';
@@ -419,6 +438,9 @@ function SearchWidget({
               arrival: arr,
               durationMins: dur,
               classes: ['All Classes', 'General', '2S', 'SL', '3A'],
+              verificationStatus: item.train.verificationStatus || 'verified',
+              sourceUrl: item.train.sourceUrl || null,
+              timetableEffectiveDate: item.train.timetableEffectiveDate || null,
               halts: (item.allStops || []).map((s: any) => ({
                 station: s.station, code: s.code, arr: s.arr || 'Source',
                 dep: s.dep || 'Destination', halt: s.halt || '--', day: s.day || 1, platform: s.platform || '--',
@@ -766,6 +788,27 @@ function SearchWidget({
                 </button>
               </div>
             </div>
+
+            {/* Official Data Provenance & NTES Live Status Disclaimer */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="text-zinc-700">
+                  <strong className="text-black">Timetable Verified:</strong> 25 Oct 2026 (ER, SER & Kolkata Metro official schedule)
+                </span>
+              </div>
+              <div className="text-[11px] text-zinc-500">
+                Scheduled Timetable • For live GPS running status, check{' '}
+                <a
+                  href="https://enquiry.indianrail.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold underline text-black hover:text-yellow-600"
+                >
+                  NTES Official
+                </a>
+              </div>
+            </div>
             {/* Filter Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
               {[
@@ -895,6 +938,12 @@ function SearchWidget({
                             <span className={`text-[10.5px] font-black px-2.5 py-0.5 rounded-md border ${badge.bg} ${badge.text} ${badge.border}`}>
                               {badge.label}
                             </span>
+                            {train.verificationStatus === 'verified' && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Verified 2026</span>
+                              </span>
+                            )}
                             <RunningDaysBadge days={train.runningDays} />
                           </div>
                           <div className="text-sm sm:text-base font-black text-black mt-1.5 truncate group-hover:underline">

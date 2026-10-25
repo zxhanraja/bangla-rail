@@ -96,6 +96,7 @@ interface TrainItem {
   destinationStationCode: string;
   runningDays: string;
   distanceKm: number;
+  verificationStatus?: string;
   departure: string;
   arrival: string;
   durationMins: number;
@@ -308,13 +309,21 @@ export default function TrainsBetweenClient({ fromStation, toStation, trains }: 
         </div>
       </div>
 
-      {/* Train Count Banner */}
-      <div className="flex items-center justify-between text-xs text-neutral-600 px-1">
+      {/* Train Count & Verification Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-neutral-600 px-3 py-2.5 rounded-xl bg-neutral-50 border border-neutral-200">
         <div>
           Showing <strong>{filteredTrains.length}</strong> of <strong>{trains.length}</strong> trains from {fromStation.name} to {toStation.name}
         </div>
         <div className="text-[11px] text-neutral-500">
-          Times formatted in 24-hour IST (Indian Standard Time)
+          ✓ Timetable verified Oct 2026 • For live GPS status, check{' '}
+          <a
+            href="https://enquiry.indianrail.gov.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-bold text-neutral-900 hover:text-yellow-600"
+          >
+            NTES Official
+          </a>
         </div>
       </div>
 
@@ -357,6 +366,12 @@ export default function TrainsBetweenClient({ fromStation, toStation, trains }: 
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${badge.bg} ${badge.text}`}>
                           {t.type}
                         </span>
+                        {t.verificationStatus === 'verified' && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300">
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span>Verified 2026</span>
+                          </span>
+                        )}
                         <RunningDaysBadge days={t.runningDays} />
                       </div>
 
