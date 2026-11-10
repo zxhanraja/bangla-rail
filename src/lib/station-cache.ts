@@ -116,24 +116,14 @@ function levenshtein(a: string, b: string): number {
 }
 
 export const STATION_ALIASES: Record<string, string> = {
-  HMZ: 'HM',
   HM: 'HMZ',
-  CGR: 'CHN',
   CHN: 'CGR',
-  CNS: 'CHT',
-  CHT: 'CNS',
-  DKAE: 'DBAE',
   DBAE: 'DKAE',
-  MYM: 'MSAE',
-  MSAE: 'MYM',
-  KOG: 'KON',
   KON: 'KOG',
   CP: 'KOAA',
-  KOAA: 'CP',
   'M-SECTOR-V': 'M-SCV',
   'M-HOWRAH-MAIDAN': 'M-HMD',
   'M-ESP2': 'M-ESP',
-  'M-ESP': 'M-ESP2',
   'M-JOKA': 'M-JOK',
   'M-JOK': 'M-JOKA',
   'M-SEALDAH': 'M-SDAH',
@@ -153,7 +143,7 @@ export const STATION_ALIASES: Record<string, string> = {
   KTAE: 'KOG',
   RSAE: 'RIS',
   SRAE: 'SRP',
-  HGY: 'HRAE',
+  HRAE: 'HGY',
 
   // Tribeni & Kuntighat & Majerhat
   TRS: 'TBAE',
@@ -167,12 +157,12 @@ export const STATION_ALIASES: Record<string, string> = {
   PKRA: 'FNAE',
   FNAE: 'PKRA',
   CLAH: 'CDH',
-  CDH: 'CLAH',
 
   // Phantom duplicate codes mapped to active canonical stations
   CNJG: 'CG',
-  DMHB: 'D',
-  BDGE: 'BGB',
+  DMHB: 'DH',
+  BDGE: 'KBGB',
+  BGB: 'KBGB',
   BJNJ: 'BNJ',
   DKE: 'DDJ',
   DKJN: 'DDJ',
